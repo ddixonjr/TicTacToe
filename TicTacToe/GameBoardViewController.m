@@ -6,9 +6,9 @@
 //  Copyright (c) 2014 AppSpaceship. All rights reserved.
 //
 
-#import "ViewController.h"
+#import "GameBoardViewController.h"
 
-@interface ViewController () <UIAlertViewDelegate>
+@interface GameBoardViewController () <UIAlertViewDelegate>
 
 // Game Grid Properties
 @property (strong, nonatomic) IBOutlet UILabel *myLabelOne;
@@ -29,10 +29,11 @@
 
 @property (nonatomic) CGPoint origPlayerLabelPoint;
 @property (nonatomic) CGAffineTransform origPlayerLabelTransform;
+@property (strong,nonatomic) IBOutlet UILabel *loseTurnLabel;
 
 @end
 
-@implementation ViewController
+@implementation GameBoardViewController
 
 - (void)viewDidLoad
 {
@@ -52,8 +53,10 @@
     [self resetBoard];
     self.origPlayerLabelPoint = self.whichPlayerLabel.center;
     self.origPlayerLabelTransform = self.whichPlayerLabel.transform;
+//    self.loseTurnLabel.text = @"Hey, I'm here!";
 }
 
+            
 
 
 #pragma mark - Gesture Recognizer Action Methods
@@ -120,7 +123,6 @@
 
 - (void)processMove:(UILabel *)selectedLabel {
     [self populateLabelWithCorrectPlayer:selectedLabel];
-    [self setPlayerLabel];
 
     self.numberOfTurnsTaken ++;
 
@@ -129,18 +131,36 @@
         self.whichPlayerLabel.text = @"GAME OVER";
     }
 
-    NSString *winnerString = [self whoWon];
+    else {
+        NSString *winnerString = [self whoWon];
 
-    NSLog(@"winnerString: %@",winnerString);
-    if (winnerString != nil) {
-        NSString *messageString = [NSString stringWithFormat:@"%@ Won",winnerString];
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:messageString
-                                                        message:@"Great Job!"
-                                                       delegate:self
-                                              cancelButtonTitle:@"Restart Game"
-                                              otherButtonTitles:nil];
-        [alert show];
+        NSLog(@"winnerString: %@",winnerString);
+        if (winnerString != nil) {
+            NSString *messageString = [NSString stringWithFormat:@"%@ Won",winnerString];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:messageString
+                                                            message:@"Great Job!"
+                                                           delegate:self
+                                                  cancelButtonTitle:@"Restart Game"
+                                                  otherButtonTitles:nil];
+            [alert show];
+        }
+        else {
+            [self setPlayerLabel];
+            NSLog(@"Just prior to NSTimer");
+            [NSTimer scheduledTimerWithTimeInterval:3.0 target:self selector:@selector(turnExpired) userInfo:nil repeats:NO];
+        }
     }
+}
+
+-(void)turnExpired
+{
+    NSLog(@"in turnExpired");
+//    self.loseTurnLabel.text = @"Turn Over";
+    NSLog(@"loseTurnLabel.text = %@",self.loseTurnLabel.text);
+//    [NSThread sleepForTimeInterval:1.0];
+//    self.loseTurnLabel.text = @"";
+    self.isItPlayerOne = !self.isItPlayerOne;
+    [self setPlayerLabel];
 }
 
 
@@ -195,7 +215,9 @@
         self.whichPlayerLabel.text = @"O";
         self.whichPlayerLabel.textColor = [UIColor redColor];
 
-    }}
+    }
+
+}
 
 // helper method to determine if board is filled
 

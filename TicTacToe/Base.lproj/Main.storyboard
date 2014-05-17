@@ -4,10 +4,10 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
     </dependencies>
     <scenes>
-        <!--View Controller-->
+        <!--Game Board View Controller-->
         <scene sceneID="ufC-wZ-h7g">
             <objects>
-                <viewController id="vXZ-lx-hvc" customClass="ViewController" sceneMemberID="viewController">
+                <viewController id="vXZ-lx-hvc" customClass="GameBoardViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="kh9-bI-dsS">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="480"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -97,6 +97,13 @@
                                 <color key="textColor" red="0.73725491762161255" green="0.27843138575553894" blue="0.050980396568775177" alpha="1" colorSpace="deviceRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="YGp-7i-1tC">
+                                <rect key="frame" x="47" y="417" width="226" height="37"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="27"/>
+                                <color key="textColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="0.15965814497046396" green="0.6146406969297481" blue="0.61696827168367352" alpha="1" colorSpace="calibratedRGB"/>
                         <gestureRecognizers/>
@@ -106,6 +113,7 @@
                         </connections>
                     </view>
                     <connections>
+                        <outlet property="loseTurnLabel" destination="YGp-7i-1tC" id="Ia5-3s-ZDE"/>
                         <outlet property="myLabelEight" destination="iYX-qE-ZGQ" id="nfw-YZ-H0s"/>
                         <outlet property="myLabelFive" destination="Pr4-la-97A" id="VS1-Zs-kyS"/>
                         <outlet property="myLabelFour" destination="rSJ-aq-bG6" id="ic4-bX-Ghz"/>
