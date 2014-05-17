@@ -9,6 +9,8 @@
 #import "ViewController.h"
 
 @interface ViewController () <UIAlertViewDelegate>
+
+// Game Grid Properties
 @property (strong, nonatomic) IBOutlet UILabel *myLabelOne;
 @property (strong, nonatomic) IBOutlet UILabel *myLabelTwo;
 @property (strong, nonatomic) IBOutlet UILabel *myLabelThree;
@@ -19,12 +21,14 @@
 @property (strong, nonatomic) IBOutlet UILabel *myLabelEight;
 @property (strong, nonatomic) IBOutlet UILabel *myLabelNine;
 @property (strong, nonatomic) IBOutlet UILabel *whichPlayerLabel;
-
 @property (strong, nonatomic) NSArray *ticTacToeGridArray;
-@property (nonatomic) BOOL isItPlayerOne;
 
+// Player Tracking Properties
+@property (nonatomic) BOOL isItPlayerOne;
 @property (nonatomic) NSInteger numberOfTurnsTaken;
 
+@property (nonatomic) CGPoint origPlayerLabelPoint;
+@property (nonatomic) CGAffineTransform origPlayerLabelTransform;
 
 @end
 
@@ -45,26 +49,16 @@
                                    self.myLabelEight,
                                    self.myLabelNine,
                                    nil];
-
     [self resetBoard];
-
-
+    self.origPlayerLabelPoint = self.whichPlayerLabel.center;
+    self.origPlayerLabelTransform = self.whichPlayerLabel.transform;
 }
 
-- (UILabel *)findLabelUsingPoint:(CGPoint) point{
-//    NSLog(@"here is your point %f %f",point.x,point.y);
 
-    for (UILabel *currentLabel in self.ticTacToeGridArray) {
 
-        if (CGRectContainsPoint(currentLabel.frame, point)){
-            NSLog(@"you touched label %d", currentLabel.tag);
-            return currentLabel;
-        }
+#pragma mark - Gesture Recognizer Action Methods
 
-    }
 
-    return nil;
-}
 
 -(IBAction)onLabelTapped:(UITapGestureRecognizer*) tapGestureRecognizer {
 
@@ -73,39 +67,97 @@
     UILabel *selectLabel = [self findLabelUsingPoint:tappedPoint];
 
     if (selectLabel.text.length == 0) {
-        [self populateLabelWithCorrectPlayer:selectLabel];
-        [self setPlayerLabel];
-
-        self.numberOfTurnsTaken ++;
-
-        if ([self isTheBoardFilled]) {
-
-            self.whichPlayerLabel.text = @"GAME OVER";
-        }
-
-        NSString *winnerString = [self whoWon];
-
-        NSLog(@"winnerString: %@",winnerString);
-        if (winnerString != nil) {
-            NSString *messageString = [NSString stringWithFormat:@"%@ Won",winnerString];
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:messageString
-                                                            message:@"Great Job!"
-                                                           delegate:self
-                                                  cancelButtonTitle:@"Restart Game"
-                                                  otherButtonTitles:nil];
-            [alert show];
-        }
+        [self processMove:selectLabel];
 
     }
 
+}
+
+
+-(IBAction)onDragOfPlayerSymbol:(UIPanGestureRecognizer *)panGestureRecognizer
+{
+    CGPoint curPanPoint = [panGestureRecognizer locationInView:self.view];
+//    curPanPoint.x += self.whichPlayerLabel.center.x;
+//    curPanPoint.y += self.whichPlayerLabel.center.y;
+//
+
+    NSLog(@"curPanPoint (%0.2f,%0.2f)",curPanPoint.x,curPanPoint.y);
+
+    // if user touched the actual player symbol label start moving in line with the center
+    if (CGRectContainsPoint(self.whichPlayerLabel.frame,curPanPoint))
+    {
+//        self.whichPlayerLabel.transform = CGAffineTransformMakeTranslation(curPanPoint.x,curPanPoint.y);
+        self.whichPlayerLabel.center = curPanPoint;
+        NSLog(@"Touching whichPlayerLabel (center = (%0.2f,%0.2f))",self.whichPlayerLabel.center.x,self.whichPlayerLabel.center.y);
+    }
+
+    if (panGestureRecognizer.state == UIGestureRecognizerStateEnded)
+    {
+        UILabel *selectedLabel = [self findLabelUsingPoint:curPanPoint];
+        if (selectedLabel != nil)
+        {
+            [self processMove:selectedLabel];
+            self.whichPlayerLabel.center = self.origPlayerLabelPoint;
+        }
+        else {
+            [UIView animateWithDuration:0.8 animations:^{
+            self.whichPlayerLabel.center = self.origPlayerLabelPoint;
+        }];
+        }
+    }
 
 }
+
+
+#pragma mark - UIAlertView Delegate method
+
 
 -(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     [self resetBoard];
 }
 
-#pragma mark Helper Methods
+#pragma mark - Helper Methods
+
+- (void)processMove:(UILabel *)selectedLabel {
+    [self populateLabelWithCorrectPlayer:selectedLabel];
+    [self setPlayerLabel];
+
+    self.numberOfTurnsTaken ++;
+
+    if ([self isTheBoardFilled]) {
+
+        self.whichPlayerLabel.text = @"GAME OVER";
+    }
+
+    NSString *winnerString = [self whoWon];
+
+    NSLog(@"winnerString: %@",winnerString);
+    if (winnerString != nil) {
+        NSString *messageString = [NSString stringWithFormat:@"%@ Won",winnerString];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:messageString
+                                                        message:@"Great Job!"
+                                                       delegate:self
+                                              cancelButtonTitle:@"Restart Game"
+                                              otherButtonTitles:nil];
+        [alert show];
+    }
+}
+
+
+- (UILabel *)findLabelUsingPoint:(CGPoint) point{
+    //    NSLog(@"here is your point %f %f",point.x,point.y);
+
+    for (UILabel *currentLabel in self.ticTacToeGridArray) {
+
+        if (CGRectContainsPoint(currentLabel.frame, point)){
+            NSLog(@"you touched label %d", currentLabel.tag);
+            return currentLabel;
+        }
+    }
+    return nil;
+}
+
+
 
 -(void)resetBoard {
 
@@ -202,7 +254,7 @@
     }
     else if ([first isEqualToString:@"O"] && [second isEqualToString:@"O"] && [third isEqualToString:@"O"]) {
         NSLog(@"O IS THE WINNER");
-        return @"Y";
+        return @"O";
     }
     return nil;
 }
