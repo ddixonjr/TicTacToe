@@ -30,6 +30,8 @@
 //  5/18/14: (Dennis) branchFrom:RefactorToMVC toBranch:RefactorToMVC_Attempt01
 //              -This is the first crack at refactoring this puppy into a basic but true MVC patterned app
 //               as described in the previous comment.
+//              -The last commit has a working version of the TicTacToeBoard data model object and
+//              -This commit removes most of the old code that was commented out just in case I needed to bring it back. :)
 //
 //  Copyright (c) 2014 AppSpaceship. All rights reserved.
 //
@@ -109,27 +111,10 @@
     CGPoint tappedPoint = [tapGestureRecognizer locationInView:self.view];
     UILabel *selectedLabel = [self findLabelUsingPoint:tappedPoint];
 
-//    This was just a test to see what an attempt to call the length property getter would evaluate to
-//    if the label if the actual object were nil...it evaluated to 0
-//    This is really interesting because if you're testing this 'return' for zero later as we are below,
-//    you're testing an invalidly derived result! ...good stuff to know!
-//    
-//    if (selectLabel==nil) NSLog(@"length of nil text label = %d",selectLabel.text.length);
-
-    // RefactorToMVC Candidate:  I think I should move this test to a method the to be TicTacToeBoard class
-    //   to do that, I'll have to rely on the TTTBoard object to tell me YES or NO based on it's status AND derive
-    //   the displayed label grid from a 'mapping' of the board pulled from the TTTBoard object
-    // From code:
-    //   BOOL isValidMove = ((selectedLabel != nil) && (selectedLabel.text.length == 0));
-    // To code:
-
     BOOL isValidMove = [self.ticTacToeBoard isValidMoveToSpace:selectedLabel.tag]; // RefactorToMVC_Attempt01
 
     if (isValidMove) {
-        // RefactorToMVC Candidate:  I think I should move this call to a method the to be TicTacToeBoard
-        //   class --  I rethought this and will call the board object's processValidateMove
-        //   within this VC's process validated method
-        [self processValidatedMove:selectedLabel];  
+        [self processValidatedMove:selectedLabel];
     }
 
 }
@@ -141,8 +126,6 @@
     CGPoint curPanPoint = [panGestureRecognizer locationInView:self.view];
 //    curPanPoint.x += self.whichPlayerLabel.center.x;
 //    curPanPoint.y += self.whichPlayerLabel.center.y;
-//
-
 //    NSLog(@"curPanPoint (%0.2f,%0.2f)",curPanPoint.x,curPanPoint.y);
 
     // if user touched the actual player symbol label start moving in line with the center
@@ -156,10 +139,8 @@
     if (panGestureRecognizer.state == UIGestureRecognizerStateEnded)
     {
         NSLog(@"Pan stopped");
-//        [self stopTurnTimer];  // Contemplating doing this in processMove only to perform in only one place
         self.isDraggingToSpace = NO;
         UILabel *selectedLabel = [self findLabelUsingPoint:curPanPoint];
-//        BOOL isValidMove = ((selectedLabel != nil) && (selectedLabel.text.length == 0));
         BOOL isValidMove = [self.ticTacToeBoard isValidMoveToSpace:selectedLabel.tag];
 
         if (isValidMove)
@@ -172,7 +153,6 @@
             self.whichPlayerLabel.center = self.origPlayerLabelPoint;
             }];
         }
-//      [self startTurnTimer];  // Contemplating doing this in processMove only to perform in only one place
     }
 
 }
@@ -199,11 +179,6 @@
 
     // RefactorToMVC_Attempt01
     [self.ticTacToeBoard processValidatedMove:self.currentPlayerLetter toSpace:selectedLabel.tag];
-
-//    [self populateLabelWithCorrectPlayer:selectedLabel];    // Need to move this to be the VC's way to present the moves
-                                                            // on the screen based on asking the TicTacToeBoard object
-                                                            // for a "boardMap" which (at this point) may just be
-                                                            // a simple 9 element NSArray like the ticTacToeGridArray in this VC
     [self refreshDisplayedTicTacToeBoard];
 
     NSString *winnerString = [self.ticTacToeBoard whoWon];
@@ -220,7 +195,6 @@
         }
         else {
             [self togglePlayerTurn];
-//            [self populateLabelWithCorrectPlayer:self.whichPlayerLabel];  // I now set the whichPlayerLabel in togglePlayerTurn
             [self startTurnTimer];
         }
     }
@@ -293,16 +267,8 @@
     self.whichPlayerLabel.text = self.currentPlayerLetter = kPlayerOneSymbol;  // RefactorToMVC_Attempt01
     self.whichPlayerLabel.textColor = (self.isItPlayerOne) ? [UIColor blueColor] : [UIColor redColor];
 
-//    [self populateLabelWithCorrectPlayer:self.whichPlayerLabel];
-    self.numberOfTurnsTaken = 0;
-
-
     [self.ticTacToeBoard initializeNewBoard];
     [self refreshDisplayedTicTacToeBoard];
-
-//    for (UILabel *label in self.ticTacToeGridArray) {
-//        label.text = kEmptyNSString;
-//    }
 }
 
 -(void)refreshDisplayedTicTacToeBoard
@@ -321,24 +287,9 @@
         {
             curLabel.textColor = [UIColor redColor];
         }
-        
-//        NSLog(@"in refreshDisplayedTicTacToeBoard - curLabel.text contains %@", curLabel.text);
-//        NSLog(@"in refreshDisplayedTicTacToeBoard - self.myLabelFive.text contains %@", self.myLabelFive.text);
-
     }
-//    NSLog(@"in refreshDisplayedTicTacToeBoard - ticTacToeBoardObjectArray contains %@", ticTacToeBoardObjectArray);
 }
 
-
-//  Removed in RefactorToMVC_Attempt01 because the refreshDisplayedTicTacToeBoard method
-//    now syncs the display with the ticTacToeBoard object
-//-(void)populateLabelWithCorrectPlayer:(UILabel *)label
-//{
-//    label.textColor = (self.isItPlayerOne) ? [UIColor blueColor] : [UIColor redColor];
-//    label.text = self.currentPlayerLetter;
-//    NSLog(@"in populateLabelWithCorrectPlayer - label.text = %@",label.text);
-//}
-//
 
 -(void)togglePlayerTurn
 {
