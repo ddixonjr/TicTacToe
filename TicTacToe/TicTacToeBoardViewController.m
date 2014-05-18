@@ -27,14 +27,17 @@
 //                   make method calls to an instance of this view controller to make moves...
 //                   at least that's the plan as of now.  :)
 //
+//  5/18/14: (Dennis) branchFrom:RefactorToMVC toBranch:RefactorToMVC_Attempt01
+//              -This is the first crack at refactoring this puppy into a basic but true MVC patterned app
+//               as described in the previous comment.
+//
 //  Copyright (c) 2014 AppSpaceship. All rights reserved.
 //
 
 #import "TicTacToeBoardViewController.h"
-#define kMaxTurnTime 8.0
-#define kPlayerOneSymbol @"X"
-#define kPlayerTwoSymbol @"O"
-#define kEmptyNSString @""
+#import "TicTacToeBoard.h"
+
+
 
 
 @interface TicTacToeBoardViewController () <UIAlertViewDelegate>
@@ -63,7 +66,13 @@
 @property (nonatomic) BOOL isDraggingToSpace;
 @property (strong,nonatomic) NSTimer *turnTimer;
 
+// Properties added as a part of RefactorToMVC_Attempt01
+@property (strong,nonatomic) TicTacToeBoard *ticTacToeBoard;
+@property (strong,nonatomic) NSString *currentPlayerLetter;
+
 @end
+
+
 
 @implementation TicTacToeBoardViewController
 
@@ -107,13 +116,20 @@
 //    
 //    if (selectLabel==nil) NSLog(@"length of nil text label = %d",selectLabel.text.length);
 
-
     // RefactorToMVC Candidate:  I think I should move this test to a method the to be TicTacToeBoard class
-    BOOL isValidMove = ((selectedLabel != nil) && (selectedLabel.text.length == 0));
+    //   to do that, I'll have to rely on the TTTBoard object to tell me YES or NO based on it's status AND derive
+    //   the displayed label grid from a 'mapping' of the board pulled from the TTTBoard object
+    // From code:
+    //   BOOL isValidMove = ((selectedLabel != nil) && (selectedLabel.text.length == 0));
+    // To code:
+
+    BOOL isValidMove = [self.ticTacToeBoard isValidMoveToSpace:selectedLabel.tag]; // RefactorToMVC_Attempt01
 
     if (isValidMove) {
-        // RefactorToMVC Candidate:  I think I should move this call to a method the to be TicTacToeBoard class
-        [self processValidatedMove:selectedLabel];
+        // RefactorToMVC Candidate:  I think I should move this call to a method the to be TicTacToeBoard
+        //   class --  I rethought this and will call the board object's processValidateMove
+        //   within this VC's process validated method
+        [self processValidatedMove:selectedLabel];  
     }
 
 }
@@ -143,7 +159,8 @@
 //        [self stopTurnTimer];  // Contemplating doing this in processMove only to perform in only one place
         self.isDraggingToSpace = NO;
         UILabel *selectedLabel = [self findLabelUsingPoint:curPanPoint];
-        BOOL isValidMove = ((selectedLabel != nil) && (selectedLabel.text.length == 0));
+//        BOOL isValidMove = ((selectedLabel != nil) && (selectedLabel.text.length == 0));
+        BOOL isValidMove = [self.ticTacToeBoard isValidMoveToSpace:selectedLabel.tag];
 
         if (isValidMove)
         {
@@ -163,10 +180,10 @@
 
 #pragma mark - UIAlertView Delegate method
 
-
 -(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     [self resetBoard];
 }
+
 
 #pragma mark - Helper Methods
 
@@ -180,12 +197,15 @@
     //     handles that function OR should this view controller just be able to ask the
     //     TicTacToeBoard model object if a winner exists?
 
+    // RefactorToMVC_Attempt01
+    [self.ticTacToeBoard processValidatedMove:self.currentPlayerLetter toSpace:selectedLabel.tag];
+
     [self populateLabelWithCorrectPlayer:selectedLabel];    // Need to move this to be the VC's way to present the moves
                                                             // on the screen based on asking the TicTacToeBoard object
                                                             // for a "boardMap" which (at this point) may just be
                                                             // a simple 9 element NSArray like the ticTacToeGridArray in this VC
 
-    NSString *winnerString = [self whoWon];
+    NSString *winnerString = [self.ticTacToeBoard whoWon];
     NSLog(@"winnerString: %@",winnerString);
 
     if (winnerString != nil) {
@@ -194,22 +214,24 @@
     }
     else {
         self.numberOfTurnsTaken++;
-        if ([self isTheBoardFilled]) {
+        if ([self.ticTacToeBoard isBoardFilled]) {
             [self showRestartGameAlertWithTitle:@"Game Over" andMessage:@"No winner this time."];
         }
         else {
             [self togglePlayerTurn];
-            [self setPlayerLabel];
+            [self populateLabelWithCorrectPlayer:self.whichPlayerLabel];
             [self startTurnTimer];
         }
     }
 }
+
 
 -(void)startTurnTimer
 {
     NSLog(@"in startTurnTimer");
     self.turnTimer = [NSTimer scheduledTimerWithTimeInterval:kMaxTurnTime target:self selector:@selector(turnExpired) userInfo:nil repeats:NO];
 }
+
 
 -(void)stopTurnTimer
 {
@@ -218,9 +240,8 @@
     self.turnTimer = nil;           // Remove my strong reference to it as well!  While I could probably make my reference weak,
                                     //   I prefer this method because I can release it when *I* choose to...barring iOS somehow
                                     //   barring iOS somehow ignoring me on this type of object.  :)
-
-
 }
+
 
 -(void)turnExpired
 {
@@ -243,13 +264,15 @@
     }
 }
 
+
 -(void)showRestartGameAlertWithTitle:(NSString *)title andMessage:(NSString *)message
 {
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Try Again!" otherButtonTitles:nil];
     [alert show];
 }
 
-- (UILabel *)findLabelUsingPoint:(CGPoint) point{
+
+-(UILabel *)findLabelUsingPoint:(CGPoint) point{
     //    NSLog(@"here is your point %f %f",point.x,point.y);
 
     for (UILabel *currentLabel in self.ticTacToeGridArray) {
@@ -266,108 +289,47 @@
 -(void)resetBoard {
 
     self.isItPlayerOne = YES;
-    [self setPlayerLabel];
+    self.currentPlayerLetter = kPlayerOneSymbol;  // RefactorToMVC_Attempt01
+    [self populateLabelWithCorrectPlayer:self.whichPlayerLabel];
     self.numberOfTurnsTaken = 0;
 
+    [self.ticTacToeBoard initializeNewBoard];
+    
     for (UILabel *label in self.ticTacToeGridArray) {
         label.text = kEmptyNSString;
     }
 }
 
 
-- (void)populateLabelWithCorrectPlayer: (UILabel *)selectedLabel{
-
-    if (self.isItPlayerOne) {
-        selectedLabel.text = kPlayerOneSymbol;
-        selectedLabel.textColor = [UIColor blueColor];
-    }
-    else {
-        selectedLabel.text = kPlayerTwoSymbol;
-        selectedLabel.textColor = [UIColor redColor];
-    }
-
-
+-(void)populateLabelWithCorrectPlayer:(UILabel *)label
+{
+    label.textColor = (self.isItPlayerOne) ? [UIColor blueColor] : [UIColor redColor];
+    label.text = self.currentPlayerLetter;
+    NSLog(@"in populateLabelWithCorrectPlayer - label.text = %@",label.text);
 }
+
 
 -(void)togglePlayerTurn
 {
-
 // RefactorToMVC Candidate:  This is where I think I have to send a notification to the VirtualPerson object when it's it's turn
     self.isItPlayerOne = !self.isItPlayerOne;
-}
-
-- (void)setPlayerLabel{
-
-    if (self.isItPlayerOne) {
-        self.whichPlayerLabel.text = kPlayerOneSymbol;
-        self.whichPlayerLabel.textColor = [UIColor blueColor];
-    }
-    else {
-        self.whichPlayerLabel.text = kPlayerTwoSymbol;
-        self.whichPlayerLabel.textColor = [UIColor redColor];
-    }
-
-}
-
-// helper method to determine if board is filled
-
--(BOOL) isTheBoardFilled {
-
-    if (self.numberOfTurnsTaken > 8) {
-
-        return YES;
-    }
-    return NO;
+    self.currentPlayerLetter = self.isItPlayerOne ? kPlayerOneSymbol : kPlayerTwoSymbol;
 }
 
 
-// helper method to determine winner
+-(TicTacToeBoard *)ticTacToeBoard
+{
+    if (_ticTacToeBoard == nil)
+    {
+        _ticTacToeBoard = [[TicTacToeBoard alloc] init];
+    }
+    return _ticTacToeBoard;
+}
+
 
 - (NSString *) whoWon
 {
-
-    NSString *first = [NSString stringWithFormat:@"%@",self.myLabelOne.text];
-    NSString *second = [NSString stringWithFormat:@"%@",self.myLabelTwo.text];
-    NSString *third = [NSString stringWithFormat:@"%@",self.myLabelThree.text];
-    NSString *forth = [NSString stringWithFormat:@"%@",self.myLabelFour.text];
-    NSString *fifth = [NSString stringWithFormat:@"%@",self.myLabelFive.text];
-    NSString *sixth = [NSString stringWithFormat:@"%@",self.myLabelSix.text];
-    NSString *seventh = [NSString stringWithFormat:@"%@",self.myLabelSeven.text];
-    NSString *eighth = [NSString stringWithFormat:@"%@",self.myLabelEight.text];
-    NSString *ninth = [NSString stringWithFormat:@"%@",self.myLabelNine.text];
-
-    NSString *candidateWinner = [self testForWinner:first second:second third:third];
-
-    if (candidateWinner == nil)
-        candidateWinner = [self testForWinner:forth second:fifth third:sixth];
-    if (candidateWinner == nil)
-        candidateWinner = [self testForWinner:seventh second:eighth third:ninth];
-    if (candidateWinner == nil)
-        candidateWinner = [self testForWinner:first second:forth third:seventh];
-    if (candidateWinner == nil)
-        candidateWinner = [self testForWinner:second second:fifth third:eighth];
-    if (candidateWinner == nil)
-        candidateWinner = [self testForWinner:third second:sixth third:ninth];
-    if (candidateWinner == nil)
-        candidateWinner = [self testForWinner:first second:fifth third:ninth];
-    if (candidateWinner == nil)
-        candidateWinner = [self testForWinner:third second:fifth third:seventh];
-
-
-    return candidateWinner;
-}
-
-- (NSString *)testForWinner:(NSString *)first second:(NSString *)second third:(NSString *)third
-{
-    if ([first isEqualToString:kPlayerOneSymbol] && [second isEqualToString:kPlayerOneSymbol] && [third isEqualToString:kPlayerOneSymbol]) {
-        NSLog(@"X IS THE WINNER");
-        return kPlayerOneSymbol;
-    }
-    else if ([first isEqualToString:kPlayerTwoSymbol] && [second isEqualToString:kPlayerTwoSymbol] && [third isEqualToString:kPlayerTwoSymbol]) {
-        NSLog(@"O IS THE WINNER");
-        return kPlayerTwoSymbol;
-    }
-    return nil;
+    return [self.ticTacToeBoard whoWon];
 }
 
 @end

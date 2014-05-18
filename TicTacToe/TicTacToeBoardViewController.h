@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "TicTacToeGlobalConstants.h"
 
 @interface TicTacToeBoardViewController : UIViewController
 
