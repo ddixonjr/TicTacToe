@@ -14,7 +14,7 @@
 		66E0E1EB19253E7A001B687A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 66E0E1EA19253E7A001B687A /* main.m */; };
 		66E0E1EF19253E7A001B687A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 66E0E1EE19253E7A001B687A /* AppDelegate.m */; };
 		66E0E1F219253E7A001B687A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 66E0E1F019253E7A001B687A /* Main.storyboard */; };
-		66E0E1F519253E7A001B687A /* GameBoardViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 66E0E1F419253E7A001B687A /* GameBoardViewController.m */; };
+		66E0E1F519253E7A001B687A /* TicTacToeBoardViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 66E0E1F419253E7A001B687A /* TicTacToeBoardViewController.m */; };
 		66E0E1F719253E7A001B687A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 66E0E1F619253E7A001B687A /* Images.xcassets */; };
 		66E0E1FE19253E7A001B687A /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66E0E1FD19253E7A001B687A /* XCTest.framework */; };
 		66E0E1FF19253E7A001B687A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66E0E1DE19253E7A001B687A /* Foundation.framework */; };
@@ -46,8 +46,8 @@
 		66E0E1ED19253E7A001B687A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		66E0E1EE19253E7A001B687A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		66E0E1F119253E7A001B687A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		66E0E1F319253E7A001B687A /* GameBoardViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameBoardViewController.h; sourceTree = "<group>"; };
-		66E0E1F419253E7A001B687A /* GameBoardViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GameBoardViewController.m; sourceTree = "<group>"; };
+		66E0E1F319253E7A001B687A /* TicTacToeBoardViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TicTacToeBoardViewController.h; sourceTree = "<group>"; };
+		66E0E1F419253E7A001B687A /* TicTacToeBoardViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TicTacToeBoardViewController.m; sourceTree = "<group>"; };
 		66E0E1F619253E7A001B687A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		66E0E1FC19253E7A001B687A /* TicTacToeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TicTacToeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		66E0E1FD19253E7A001B687A /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
@@ -119,8 +119,8 @@
 				66E0E1ED19253E7A001B687A /* AppDelegate.h */,
 				66E0E1EE19253E7A001B687A /* AppDelegate.m */,
 				66E0E1F019253E7A001B687A /* Main.storyboard */,
-				66E0E1F319253E7A001B687A /* GameBoardViewController.h */,
-				66E0E1F419253E7A001B687A /* GameBoardViewController.m */,
+				66E0E1F319253E7A001B687A /* TicTacToeBoardViewController.h */,
+				66E0E1F419253E7A001B687A /* TicTacToeBoardViewController.m */,
 				66E0E1F619253E7A001B687A /* Images.xcassets */,
 				66E0E1E519253E7A001B687A /* Supporting Files */,
 			);
@@ -253,7 +253,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				66E0E1F519253E7A001B687A /* GameBoardViewController.m in Sources */,
+				66E0E1F519253E7A001B687A /* TicTacToeBoardViewController.m in Sources */,
 				66E0E1EF19253E7A001B687A /* AppDelegate.m in Sources */,
 				66E0E1EB19253E7A001B687A /* main.m in Sources */,
 			);

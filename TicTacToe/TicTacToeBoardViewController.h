@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface GameBoardViewController : UIViewController
+@interface TicTacToeBoardViewController : UIViewController
 
 @end
