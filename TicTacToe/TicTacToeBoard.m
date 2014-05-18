@@ -55,7 +55,10 @@
     return ((spacesFilled >= 9) ? YES : NO);
 }
 
-
+-(NSArray *)getTicTacToeBoardArray
+{
+    return (NSArray *) self.ticTacToeBoardArray;
+}
 
 #pragma mark - Helper Methods
 

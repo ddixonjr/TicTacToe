@@ -200,10 +200,11 @@
     // RefactorToMVC_Attempt01
     [self.ticTacToeBoard processValidatedMove:self.currentPlayerLetter toSpace:selectedLabel.tag];
 
-    [self populateLabelWithCorrectPlayer:selectedLabel];    // Need to move this to be the VC's way to present the moves
+//    [self populateLabelWithCorrectPlayer:selectedLabel];    // Need to move this to be the VC's way to present the moves
                                                             // on the screen based on asking the TicTacToeBoard object
                                                             // for a "boardMap" which (at this point) may just be
                                                             // a simple 9 element NSArray like the ticTacToeGridArray in this VC
+    [self refreshDisplayedTicTacToeBoard];
 
     NSString *winnerString = [self.ticTacToeBoard whoWon];
     NSLog(@"winnerString: %@",winnerString);
@@ -219,7 +220,7 @@
         }
         else {
             [self togglePlayerTurn];
-            [self populateLabelWithCorrectPlayer:self.whichPlayerLabel];
+//            [self populateLabelWithCorrectPlayer:self.whichPlayerLabel];  // I now set the whichPlayerLabel in togglePlayerTurn
             [self startTurnTimer];
         }
     }
@@ -289,31 +290,64 @@
 -(void)resetBoard {
 
     self.isItPlayerOne = YES;
-    self.currentPlayerLetter = kPlayerOneSymbol;  // RefactorToMVC_Attempt01
-    [self populateLabelWithCorrectPlayer:self.whichPlayerLabel];
+    self.whichPlayerLabel.text = self.currentPlayerLetter = kPlayerOneSymbol;  // RefactorToMVC_Attempt01
+    self.whichPlayerLabel.textColor = (self.isItPlayerOne) ? [UIColor blueColor] : [UIColor redColor];
+
+//    [self populateLabelWithCorrectPlayer:self.whichPlayerLabel];
     self.numberOfTurnsTaken = 0;
 
+
     [self.ticTacToeBoard initializeNewBoard];
-    
-    for (UILabel *label in self.ticTacToeGridArray) {
-        label.text = kEmptyNSString;
-    }
+    [self refreshDisplayedTicTacToeBoard];
+
+//    for (UILabel *label in self.ticTacToeGridArray) {
+//        label.text = kEmptyNSString;
+//    }
 }
 
-
--(void)populateLabelWithCorrectPlayer:(UILabel *)label
+-(void)refreshDisplayedTicTacToeBoard
 {
-    label.textColor = (self.isItPlayerOne) ? [UIColor blueColor] : [UIColor redColor];
-    label.text = self.currentPlayerLetter;
-    NSLog(@"in populateLabelWithCorrectPlayer - label.text = %@",label.text);
+    NSArray *ticTacToeBoardObjectArray = [self.ticTacToeBoard getTicTacToeBoardArray];
+
+
+    for (UILabel *curLabel in self.ticTacToeGridArray)
+    {
+        curLabel.text = [ticTacToeBoardObjectArray objectAtIndex:curLabel.tag];
+        if ([curLabel.text isEqualToString:kPlayerOneSymbol])
+        {
+            curLabel.textColor = [UIColor blueColor];
+        }
+        else if ([curLabel.text isEqualToString:kPlayerTwoSymbol])
+        {
+            curLabel.textColor = [UIColor redColor];
+        }
+        
+//        NSLog(@"in refreshDisplayedTicTacToeBoard - curLabel.text contains %@", curLabel.text);
+//        NSLog(@"in refreshDisplayedTicTacToeBoard - self.myLabelFive.text contains %@", self.myLabelFive.text);
+
+    }
+//    NSLog(@"in refreshDisplayedTicTacToeBoard - ticTacToeBoardObjectArray contains %@", ticTacToeBoardObjectArray);
 }
 
+
+//  Removed in RefactorToMVC_Attempt01 because the refreshDisplayedTicTacToeBoard method
+//    now syncs the display with the ticTacToeBoard object
+//-(void)populateLabelWithCorrectPlayer:(UILabel *)label
+//{
+//    label.textColor = (self.isItPlayerOne) ? [UIColor blueColor] : [UIColor redColor];
+//    label.text = self.currentPlayerLetter;
+//    NSLog(@"in populateLabelWithCorrectPlayer - label.text = %@",label.text);
+//}
+//
 
 -(void)togglePlayerTurn
 {
 // RefactorToMVC Candidate:  This is where I think I have to send a notification to the VirtualPerson object when it's it's turn
     self.isItPlayerOne = !self.isItPlayerOne;
     self.currentPlayerLetter = self.isItPlayerOne ? kPlayerOneSymbol : kPlayerTwoSymbol;
+    self.whichPlayerLabel.textColor = (self.isItPlayerOne) ? [UIColor blueColor] : [UIColor redColor];
+    self.whichPlayerLabel.text = self.currentPlayerLetter;
+
 }
 
 

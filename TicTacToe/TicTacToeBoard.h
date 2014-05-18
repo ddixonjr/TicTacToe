@@ -12,11 +12,13 @@
 
 @interface TicTacToeBoard : NSObject
 
+-(void)initializeNewBoard;
+-(NSArray *)getTicTacToeBoardArray;
+
 -(BOOL)isValidMoveToSpace:(NSInteger)space;
 -(void)processValidatedMove:(NSString *)player toSpace:(NSInteger)space;
--(NSString *)whoWon;
--(void)initializeNewBoard;
--(BOOL)isBoardFilled;
 
+-(NSString *)whoWon;
+-(BOOL)isBoardFilled;
 
 @end
