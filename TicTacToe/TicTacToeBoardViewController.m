@@ -2,14 +2,30 @@
 //  TicTacToeBoardViewController.m
 //  TicTacToe
 //
-//  5/16/14: (Dennis) Originally created by Robert Figueras and Dennis Dixon on 5/15/14.
-//  5/17/14: (Dennis) This version represents a branch off of that original master with
-//  Dennis' implementation of the following additions:
-//      -A drag-to-space feature
-//      -A turn timer feature
-//      -refactoring that renames and further segments some
-//       of the original method functionality in to more smaller methods
-//  5/18/14: (Dennis) This version contains a fix from Dennis breaking the board filled functionality
+//  5/16/14: (Dennis) branchIn:master
+//              -Originally created by Robert Figueras and Dennis Dixon on 5/15/14.
+//
+//  5/17/14: (Dennis) branchFrom:master toBranch:StretchOneDennis
+//              -Dennis' implementation of a drag-to-space feature
+//
+//  5/17/14: (Dennis) branchFrom:StretchOneDennis toBranch:StretchTwoDennis
+//              -Dennis' implementation of the following:
+//                  -A turn timer feature
+//                  -Refactoring that renames and further segments some
+//                   of the original method functionality in to more smaller methods
+//
+//  5/18/14: (Dennis) branchFrom:master toBranch:FixBoardFilled
+//              -This version contains a fix from Dennis breaking the board filled functionality
+//
+//  5/18/14: (Dennis) branchFrom:master toBranch:RefactorToMVC
+//              -This is the start of possibly many attempts to refactor this app in alignment with
+//               the MVC pattern.  No code changes exist in this branch yet--only comments on some thoughts I have.
+//               I will create "attempt" branches off of this one to allow me to explore until I can merge a working
+//               version into this branch for merge into the master.
+//                  -The overall purpose is to decouple the board from the view controller into its own
+//                   object so that later a VirtualPerson object can also 'look' at the board and then
+//                   make method calls to an instance of this view controller to make moves...
+//                   at least that's the plan as of now.  :)
 //
 //  Copyright (c) 2014 AppSpaceship. All rights reserved.
 //
@@ -58,7 +74,6 @@
 {
     [super viewDidLoad];
 
-
     self.ticTacToeGridArray = [NSArray arrayWithObjects:self.myLabelOne,
                                    self.myLabelTwo,
                                    self.myLabelThree,
@@ -92,14 +107,14 @@
 //    
 //    if (selectLabel==nil) NSLog(@"length of nil text label = %d",selectLabel.text.length);
 
+
+    // RefactorToMVC Candidate:  I think I should move this test to a method the to be TicTacToeBoard class
     BOOL isValidMove = ((selectedLabel != nil) && (selectedLabel.text.length == 0));
 
     if (isValidMove) {
-//        [self stopTurnTimer];  // Contemplating doing this in processMove only to perform in only one place
+        // RefactorToMVC Candidate:  I think I should move this call to a method the to be TicTacToeBoard class
         [self processValidatedMove:selectedLabel];
     }
-
-//    [self startTurnTimer];  // Contemplating doing this in processMove only to perform in only one place
 
 }
 
@@ -157,8 +172,18 @@
 
 - (void)processValidatedMove:(UILabel *)selectedLabel {
 
-    [self stopTurnTimer];
-    [self populateLabelWithCorrectPlayer:selectedLabel];
+    [self stopTurnTimer];  // Need to move this to the tap and drag methods to keep the timer in this VC
+
+    // Fundamental questions: should the board or the view controller determine who won???
+    //  -should a model object like TicTacToeBoard be able to determine if a winner exists?
+    //  -should it that function be separated out into a TicTacToeBoardManager object that
+    //     handles that function OR should this view controller just be able to ask the
+    //     TicTacToeBoard model object if a winner exists?
+
+    [self populateLabelWithCorrectPlayer:selectedLabel];    // Need to move this to be the VC's way to present the moves
+                                                            // on the screen based on asking the TicTacToeBoard object
+                                                            // for a "boardMap" which (at this point) may just be
+                                                            // a simple 9 element NSArray like the ticTacToeGridArray in this VC
 
     NSString *winnerString = [self whoWon];
     NSLog(@"winnerString: %@",winnerString);
@@ -266,6 +291,8 @@
 
 -(void)togglePlayerTurn
 {
+
+// RefactorToMVC Candidate:  This is where I think I have to send a notification to the VirtualPerson object when it's it's turn
     self.isItPlayerOne = !self.isItPlayerOne;
 }
 
