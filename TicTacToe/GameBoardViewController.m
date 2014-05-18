@@ -2,11 +2,18 @@
 //  ViewController.m
 //  TicTacToe
 //
-//  Created by Robert Figueras on 5/15/14.
+//  Created by Robert Figueras and Dennis Dixon on 5/15/14.
+//  This version represents a branch off of the master with feature adds for both
+//  an initial implementation of the Drag-to-space feature.
 //  Copyright (c) 2014 AppSpaceship. All rights reserved.
 //
 
 #import "GameBoardViewController.h"
+#define kMaxTurnTime 8.0
+#define kPlayerOneSymbol @"X"
+#define kPlayerTwoSymbol @"O"
+#define kEmptyNSString @""
+
 
 @interface GameBoardViewController () <UIAlertViewDelegate>
 
@@ -31,9 +38,15 @@
 @property (nonatomic) CGAffineTransform origPlayerLabelTransform;
 @property (strong,nonatomic) IBOutlet UILabel *loseTurnLabel;
 
+@property (nonatomic) BOOL isDraggingToSpace;
+@property (strong,nonatomic) NSTimer *turnTimer;
+
 @end
 
 @implementation GameBoardViewController
+
+
+#pragma mark - UIViewController Life Cycle Methods
 
 - (void)viewDidLoad
 {
@@ -52,8 +65,6 @@
                                    nil];
     [self resetBoard];
     self.origPlayerLabelPoint = self.whichPlayerLabel.center;
-    self.origPlayerLabelTransform = self.whichPlayerLabel.transform;
-//    self.loseTurnLabel.text = @"Hey, I'm here!";
 }
 
             
@@ -61,52 +72,69 @@
 
 #pragma mark - Gesture Recognizer Action Methods
 
-
-
 -(IBAction)onLabelTapped:(UITapGestureRecognizer*) tapGestureRecognizer {
 
+    NSLog(@"in onLabelTapped");
+
     CGPoint tappedPoint = [tapGestureRecognizer locationInView:self.view];
+    UILabel *selectedLabel = [self findLabelUsingPoint:tappedPoint];
 
-    UILabel *selectLabel = [self findLabelUsingPoint:tappedPoint];
+//    This was just a test to see what an attempt to call the length property getter would evaluate to
+//    if the label if the actual object were nil...it evaluated to 0
+//    This is really interesting because if you're testing this 'return' for zero later as we are below,
+//    you're testing an invalidly derived result! ...good stuff to know!
+//    
+//    if (selectLabel==nil) NSLog(@"length of nil text label = %d",selectLabel.text.length);
 
-    if (selectLabel.text.length == 0) {
-        [self processMove:selectLabel];
+    BOOL isValidMove = ((selectedLabel != nil) && (selectedLabel.text.length == 0));
 
+    if (isValidMove) {
+//        [self stopTurnTimer];  // Contemplating doing this in processMove only to perform in only one place
+        [self processValidatedMove:selectedLabel];
     }
+
+//    [self startTurnTimer];  // Contemplating doing this in processMove only to perform in only one place
 
 }
 
 
 -(IBAction)onDragOfPlayerSymbol:(UIPanGestureRecognizer *)panGestureRecognizer
 {
+    self.isDraggingToSpace = YES;
     CGPoint curPanPoint = [panGestureRecognizer locationInView:self.view];
 //    curPanPoint.x += self.whichPlayerLabel.center.x;
 //    curPanPoint.y += self.whichPlayerLabel.center.y;
 //
 
-    NSLog(@"curPanPoint (%0.2f,%0.2f)",curPanPoint.x,curPanPoint.y);
+//    NSLog(@"curPanPoint (%0.2f,%0.2f)",curPanPoint.x,curPanPoint.y);
 
     // if user touched the actual player symbol label start moving in line with the center
     if (CGRectContainsPoint(self.whichPlayerLabel.frame,curPanPoint))
     {
 //        self.whichPlayerLabel.transform = CGAffineTransformMakeTranslation(curPanPoint.x,curPanPoint.y);
         self.whichPlayerLabel.center = curPanPoint;
-        NSLog(@"Touching whichPlayerLabel (center = (%0.2f,%0.2f))",self.whichPlayerLabel.center.x,self.whichPlayerLabel.center.y);
+//        NSLog(@"Touching whichPlayerLabel (center = (%0.2f,%0.2f))",self.whichPlayerLabel.center.x,self.whichPlayerLabel.center.y);
     }
 
     if (panGestureRecognizer.state == UIGestureRecognizerStateEnded)
     {
+        NSLog(@"Pan stopped");
+//        [self stopTurnTimer];  // Contemplating doing this in processMove only to perform in only one place
+        self.isDraggingToSpace = NO;
         UILabel *selectedLabel = [self findLabelUsingPoint:curPanPoint];
-        if (selectedLabel != nil)
+        BOOL isValidMove = ((selectedLabel != nil) && (selectedLabel.text.length == 0));
+
+        if (isValidMove)
         {
-            [self processMove:selectedLabel];
+            [self processValidatedMove:selectedLabel];
             self.whichPlayerLabel.center = self.origPlayerLabelPoint;
         }
         else {
             [UIView animateWithDuration:0.8 animations:^{
             self.whichPlayerLabel.center = self.origPlayerLabelPoint;
-        }];
+            }];
         }
+//      [self startTurnTimer];  // Contemplating doing this in processMove only to perform in only one place
     }
 
 }
@@ -121,48 +149,73 @@
 
 #pragma mark - Helper Methods
 
-- (void)processMove:(UILabel *)selectedLabel {
+- (void)processValidatedMove:(UILabel *)selectedLabel {
+
+    [self stopTurnTimer];
     [self populateLabelWithCorrectPlayer:selectedLabel];
 
-    self.numberOfTurnsTaken ++;
+    NSString *winnerString = [self whoWon];
+    NSLog(@"winnerString: %@",winnerString);
 
-    if ([self isTheBoardFilled]) {
-
-        self.whichPlayerLabel.text = @"GAME OVER";
+    if (winnerString != nil) {
+        NSString *titleString = [NSString stringWithFormat:@"%@ Won",winnerString];
+        [self showRestartGameAlertWithTitle:titleString andMessage:@"Great Job!"];
     }
-
     else {
-        NSString *winnerString = [self whoWon];
-
-        NSLog(@"winnerString: %@",winnerString);
-        if (winnerString != nil) {
-            NSString *messageString = [NSString stringWithFormat:@"%@ Won",winnerString];
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:messageString
-                                                            message:@"Great Job!"
-                                                           delegate:self
-                                                  cancelButtonTitle:@"Restart Game"
-                                                  otherButtonTitles:nil];
-            [alert show];
+        if (self.numberOfTurnsTaken++ > 8) {
+            [self showRestartGameAlertWithTitle:@"Game Over" andMessage:@"No winner this time."];
         }
         else {
+            [self togglePlayerTurn];
             [self setPlayerLabel];
-            NSLog(@"Just prior to NSTimer");
-            [NSTimer scheduledTimerWithTimeInterval:3.0 target:self selector:@selector(turnExpired) userInfo:nil repeats:NO];
+            [self startTurnTimer];
         }
     }
+}
+
+-(void)startTurnTimer
+{
+    NSLog(@"in startTurnTimer");
+    self.turnTimer = [NSTimer scheduledTimerWithTimeInterval:kMaxTurnTime target:self selector:@selector(turnExpired) userInfo:nil repeats:NO];
+}
+
+-(void)stopTurnTimer
+{
+    NSLog(@"in stopTurnTimer");
+    [self.turnTimer invalidate];    // Remove the strong reference in NSRunLoop to the NSTimer object
+    self.turnTimer = nil;           // Remove my strong reference to it as well!  While I could probably make my reference weak,
+                                    //   I prefer this method because I can release it when *I* choose to...barring iOS somehow
+                                    //   barring iOS somehow ignoring me on this type of object.  :)
+
+
 }
 
 -(void)turnExpired
 {
-    NSLog(@"in turnExpired");
-//    self.loseTurnLabel.text = @"Turn Over";
-    NSLog(@"loseTurnLabel.text = %@",self.loseTurnLabel.text);
-//    [NSThread sleepForTimeInterval:1.0];
-//    self.loseTurnLabel.text = @"";
-    self.isItPlayerOne = !self.isItPlayerOne;
-    [self setPlayerLabel];
+
+    if (!self.isDraggingToSpace) {
+        NSLog(@"in turnExpired -- self.turnTimer = %@",self.turnTimer);
+//        I decided to ditch the idea of just passing the turn to the other player
+//        since that would probably mean certain victory for that other player
+//        self.loseTurnLabel.text = @"Turn Over";
+//        NSLog(@"loseTurnLabel.text = %@",self.loseTurnLabel.text);
+//        [NSThread sleepForTimeInterval:1.0];
+//        self.loseTurnLabel.text = kEmptyNSString;
+//        self.isItPlayerOne = !self.isItPlayerOne;
+//        [self setPlayerLabel];
+
+//        Instead, I'll just flag the expired turn player with a forfeit
+        NSString *playerString = self.isItPlayerOne ? kPlayerTwoSymbol : kPlayerOneSymbol; // Which ever player is current just forfeited so the other player won
+        NSString *forfeitMessageString = [NSString stringWithFormat:@"%@ Won by Forfeit",playerString];
+        [self showRestartGameAlertWithTitle:@"Game Over" andMessage:forfeitMessageString];
+    }
 }
 
+-(void)showRestartGameAlertWithTitle:(NSString *)title andMessage:(NSString *)message
+{
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Try Again!" otherButtonTitles:nil];
+    [alert show];
+}
 
 - (UILabel *)findLabelUsingPoint:(CGPoint) point{
     //    NSLog(@"here is your point %f %f",point.x,point.y);
@@ -178,7 +231,6 @@
 }
 
 
-
 -(void)resetBoard {
 
     self.isItPlayerOne = YES;
@@ -186,7 +238,7 @@
     self.numberOfTurnsTaken = 0;
 
     for (UILabel *label in self.ticTacToeGridArray) {
-        label.text = @"";
+        label.text = kEmptyNSString;
     }
 }
 
@@ -194,27 +246,31 @@
 - (void)populateLabelWithCorrectPlayer: (UILabel *)selectedLabel{
 
     if (self.isItPlayerOne) {
-        selectedLabel.text = @"X";
+        selectedLabel.text = kPlayerOneSymbol;
         selectedLabel.textColor = [UIColor blueColor];
     }
     else {
-        selectedLabel.text = @"O";
+        selectedLabel.text = kPlayerTwoSymbol;
         selectedLabel.textColor = [UIColor redColor];
     }
-    self.isItPlayerOne = !self.isItPlayerOne;
 
+
+}
+
+-(void)togglePlayerTurn
+{
+    self.isItPlayerOne = !self.isItPlayerOne;
 }
 
 - (void)setPlayerLabel{
 
     if (self.isItPlayerOne) {
-        self.whichPlayerLabel.text = @"X";
+        self.whichPlayerLabel.text = kPlayerOneSymbol;
         self.whichPlayerLabel.textColor = [UIColor blueColor];
     }
     else {
-        self.whichPlayerLabel.text = @"O";
+        self.whichPlayerLabel.text = kPlayerTwoSymbol;
         self.whichPlayerLabel.textColor = [UIColor redColor];
-
     }
 
 }
@@ -235,7 +291,6 @@
 
 - (NSString *) whoWon
 {
-//    if ([self.my])
 
     NSString *first = [NSString stringWithFormat:@"%@",self.myLabelOne.text];
     NSString *second = [NSString stringWithFormat:@"%@",self.myLabelTwo.text];
@@ -270,13 +325,13 @@
 
 - (NSString *)testForWinner:(NSString *)first second:(NSString *)second third:(NSString *)third
 {
-    if ([first isEqualToString:@"X"] && [second isEqualToString:@"X"] && [third isEqualToString:@"X"]) {
+    if ([first isEqualToString:kPlayerOneSymbol] && [second isEqualToString:kPlayerOneSymbol] && [third isEqualToString:kPlayerOneSymbol]) {
         NSLog(@"X IS THE WINNER");
-        return @"X";
+        return kPlayerOneSymbol;
     }
-    else if ([first isEqualToString:@"O"] && [second isEqualToString:@"O"] && [third isEqualToString:@"O"]) {
+    else if ([first isEqualToString:kPlayerTwoSymbol] && [second isEqualToString:kPlayerTwoSymbol] && [third isEqualToString:kPlayerTwoSymbol]) {
         NSLog(@"O IS THE WINNER");
-        return @"O";
+        return kPlayerTwoSymbol;
     }
     return nil;
 }
