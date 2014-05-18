@@ -2,13 +2,14 @@
 //  TicTacToeBoardViewController.m
 //  TicTacToe
 //
-//  5/16/14: Originally created by Robert Figueras and Dennis Dixon on 5/15/14.
-//  5/17/14: This version represents a branch off of that original master with
+//  5/16/14: (Dennis) Originally created by Robert Figueras and Dennis Dixon on 5/15/14.
+//  5/17/14: (Dennis) This version represents a branch off of that original master with
 //  Dennis' implementation of the following additions:
 //      -A drag-to-space feature
 //      -A turn timer feature
 //      -refactoring that renames and further segments some
 //       of the original method functionality in to more smaller methods
+//  5/18/14: (Dennis) This version contains a fix from Dennis breaking the board filled functionality
 //
 //  Copyright (c) 2014 AppSpaceship. All rights reserved.
 //
@@ -167,7 +168,8 @@
         [self showRestartGameAlertWithTitle:titleString andMessage:@"Great Job!"];
     }
     else {
-        if (self.numberOfTurnsTaken++ > 8) {
+        self.numberOfTurnsTaken++;
+        if ([self isTheBoardFilled]) {
             [self showRestartGameAlertWithTitle:@"Game Over" andMessage:@"No winner this time."];
         }
         else {
