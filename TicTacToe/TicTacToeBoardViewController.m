@@ -38,11 +38,9 @@
 
 #import "TicTacToeBoardViewController.h"
 #import "TicTacToeBoard.h"
+#import "VirtualPerson.h"
 
-
-
-
-@interface TicTacToeBoardViewController () <UIAlertViewDelegate>
+@interface TicTacToeBoardViewController () <UIAlertViewDelegate,VirtualPersonTicTacToeOpponent>
 
 // Game Grid Properties
 @property (strong, nonatomic) IBOutlet UILabel *myLabelOne;
@@ -72,6 +70,13 @@
 @property (strong,nonatomic) TicTacToeBoard *ticTacToeBoard;
 @property (strong,nonatomic) NSString *currentPlayerLetter;
 
+
+// Properties added as a part of the VirtualPerson implementation
+
+@property (weak, nonatomic) IBOutlet UISegmentedControl *opponentTypeSegmentedControl;
+@property (strong,nonatomic) VirtualPerson *virtualOpponent;
+@property (nonatomic,getter=isGameOn,setter=gameOn:) BOOL gameOn;
+
 @end
 
 
@@ -97,6 +102,8 @@
                                    nil];
     [self resetBoard];
     self.origPlayerLabelPoint = self.whichPlayerLabel.center;
+    self.opponentTypeSegmentedControl.selectedSegmentIndex = kOpponentTypeHuman;
+
 }
 
             
@@ -106,12 +113,19 @@
 
 -(IBAction)onLabelTapped:(UITapGestureRecognizer*) tapGestureRecognizer {
 
-    NSLog(@"in onLabelTapped");
 
     CGPoint tappedPoint = [tapGestureRecognizer locationInView:self.view];
     UILabel *selectedLabel = [self findLabelUsingPoint:tappedPoint];
 
-    BOOL isValidMove = [self.ticTacToeBoard isValidMoveToSpace:selectedLabel.tag]; // RefactorToMVC_Attempt01
+    //  Debug statements
+    if (selectedLabel) NSLog(@"in onLabelTapped - \nselectedLabel.tag = %ld", (long)selectedLabel.tag);
+    else NSLog(@"in onLabelTapped - \nselectedLabel is nil");
+    NSLog(@"tappedPoint = (%0.2f,%0.2f", tappedPoint.x,tappedPoint.y);
+
+
+    BOOL isValidMove = ([self.ticTacToeBoard isValidMoveToSpace:selectedLabel.tag]
+                        && selectedLabel != nil
+                        && [selectedLabel.text isEqualToString:kEmptyNSString]);
 
     if (isValidMove) {
         [self processValidatedMove:selectedLabel];
@@ -141,7 +155,9 @@
         NSLog(@"Pan stopped");
         self.isDraggingToSpace = NO;
         UILabel *selectedLabel = [self findLabelUsingPoint:curPanPoint];
-        BOOL isValidMove = [self.ticTacToeBoard isValidMoveToSpace:selectedLabel.tag];
+        BOOL isValidMove = ([self.ticTacToeBoard isValidMoveToSpace:selectedLabel.tag]
+                            && selectedLabel != nil
+                            && [selectedLabel.text isEqualToString:kEmptyNSString]);
 
         if (isValidMove)
         {
@@ -158,6 +174,35 @@
 }
 
 
+#pragma mark - IBAction Methods
+
+
+-(IBAction)onOpponentTypeSegmentedControlChanged
+{
+    if ([self isOpponentTypeComputer])
+    {
+        self.virtualOpponent = [[VirtualPerson alloc] initWithTicTacToeBoard:self.ticTacToeBoard];
+        self.virtualOpponent.delegate = self;
+    }
+}
+
+
+-(void)virtualPersonTicTacToeOpponent:(VirtualPerson *)vitualPerson selectSpace:(NSInteger)space
+{
+    NSLog(@"in virtualPersonTicTacToeOpponent - selectedSpace = %d",space);
+    UILabel *virtualOpponentSelectedLabel = nil;
+
+    for (UILabel *curLabel in self.ticTacToeGridArray)
+    {
+        if (curLabel.tag == space)
+        {
+            virtualOpponentSelectedLabel = curLabel;
+            break;
+        }
+    }
+    [self processValidatedMove:virtualOpponentSelectedLabel];
+}
+
 #pragma mark - UIAlertView Delegate method
 
 -(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -168,9 +213,9 @@
 #pragma mark - Helper Methods
 
 - (void)processValidatedMove:(UILabel *)selectedLabel {
-
+    NSLog(@"in TTTBVC - processValidateMove - selectedLabel = %ld",(long)selectedLabel.tag);
     [self stopTurnTimer];  // Need to move this to the tap and drag methods to keep the timer in this VC
-
+    self.gameOn = YES;
     // Fundamental questions: should the board or the view controller determine who won???
     //  -should a model object like TicTacToeBoard be able to determine if a winner exists?
     //  -should it that function be separated out into a TicTacToeBoardManager object that
@@ -198,6 +243,8 @@
             [self startTurnTimer];
         }
     }
+    NSLog(@"leaving TTTBVC - processValidateMove - selectedLabel = %ld",(long)selectedLabel.tag);
+
 }
 
 
@@ -262,19 +309,24 @@
 
 
 -(void)resetBoard {
-
+    self.gameOn = NO;
     self.isItPlayerOne = YES;
+
     self.whichPlayerLabel.text = self.currentPlayerLetter = kPlayerOneSymbol;  // RefactorToMVC_Attempt01
     self.whichPlayerLabel.textColor = (self.isItPlayerOne) ? [UIColor blueColor] : [UIColor redColor];
 
     [self.ticTacToeBoard initializeNewBoard];
     [self refreshDisplayedTicTacToeBoard];
+
+    if ([self isOpponentTypeComputer])
+    {
+        [self.virtualOpponent rebootVirtualPerson];
+    }
 }
 
 -(void)refreshDisplayedTicTacToeBoard
 {
     NSArray *ticTacToeBoardObjectArray = [self.ticTacToeBoard getTicTacToeBoardArray];
-
 
     for (UILabel *curLabel in self.ticTacToeGridArray)
     {
@@ -293,14 +345,65 @@
 
 -(void)togglePlayerTurn
 {
-// RefactorToMVC Candidate:  This is where I think I have to send a notification to the VirtualPerson object when it's it's turn
+
+// RefactorToMVC Candidate:  This is where send a notification to the VirtualPerson object when it's it's turn
+
+    NSLog(@"in togglePlayerTurn %@", (self.isItPlayerOne ? @"X's turn just finished" : @"O's turn just finished"));
     self.isItPlayerOne = !self.isItPlayerOne;
     self.currentPlayerLetter = self.isItPlayerOne ? kPlayerOneSymbol : kPlayerTwoSymbol;
+
     self.whichPlayerLabel.textColor = (self.isItPlayerOne) ? [UIColor blueColor] : [UIColor redColor];
     self.whichPlayerLabel.text = self.currentPlayerLetter;
 
+    if ([self isOpponentTypeComputer] && !self.isItPlayerOne)
+    {
+//        There seem to be async issues with this method that I don't have time to figure out so I'll just call the method directly
+//        NSLog(@"Posting notification to Virtual Dennis");
+//        NSNotification *virtualPersonTurnNotification = [[NSNotification alloc] initWithName:@"TTTVirtualPersonTurnNotification" object:nil userInfo:nil];
+//        [[NSNotificationCenter defaultCenter] postNotification:virtualPersonTurnNotification];
+
+//        Calling the takeTurn method directly had the same effect...this problem of togglePlayerTurn being exited is because when I call
+//        takeTurn, the VirtualPerson method call is placed on the stack of this same thread!!!  I have to dispatch this to another thread
+//        and I'll use the teamtreehouse playbook from the Ribbit app to do it!
+//        This worked partially but no dice...it's exiting togglePlayerTurn but not the previous call to processValidatedMove
+//        dispatch_queue_t bkgndQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//        dispatch_async(bkgndQueue,^{
+//            [self.virtualOpponent takeTurn];
+//        });
+//
+//        Now I'll try to schedule an NSTimer event to call a method to make the VirtualPerson object do it's stuff...THIS APPROACH WORKS GREAT!!! I just have some other kinks to work out.
+        [NSTimer scheduledTimerWithTimeInterval:2.0 target:self selector:@selector(passTurnToVirtualOpponent) userInfo:nil repeats:NO];
+    }
+
+    NSLog(@"leaving togglePlayerTurn %@", (self.isItPlayerOne ? @"it's now X's turn" : @"it's now O's"));
+
 }
 
+-(void)passTurnToVirtualOpponent
+{
+    [self.virtualOpponent takeTurn];
+}
+
+
+-(void)setOpponentType:(NSInteger)opponentType
+{
+    self.opponentTypeSegmentedControl.selectedSegmentIndex = opponentType;
+}
+
+
+-(BOOL)isOpponentTypeComputer
+{
+    return ((self.opponentTypeSegmentedControl.selectedSegmentIndex == kOpponentTypeComputer) ? YES : NO);
+}
+
+
+- (NSString *) whoWon
+{
+    return [self.ticTacToeBoard whoWon];
+}
+
+
+#pragma mark - Accessor Override Methods
 
 -(TicTacToeBoard *)ticTacToeBoard
 {
@@ -312,9 +415,12 @@
 }
 
 
-- (NSString *) whoWon
+-(void)gameOn:(BOOL)gameStatus
 {
-    return [self.ticTacToeBoard whoWon];
+    _gameOn = gameStatus;
+    self.opponentTypeSegmentedControl.enabled = (_gameOn == YES) ? NO : YES;
+
 }
+
 
 @end

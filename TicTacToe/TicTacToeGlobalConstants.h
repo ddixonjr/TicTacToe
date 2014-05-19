@@ -14,7 +14,7 @@
 #define kPlayerTwoSymbol @"O"
 #define kEmptyNSString @""
 #define kTicTacToeSpaces 9
-
-
+#define kOpponentTypeHuman 0
+#define kOpponentTypeComputer 1
 
 #endif

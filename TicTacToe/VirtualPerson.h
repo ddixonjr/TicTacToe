@@ -7,7 +7,25 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "TicTacToeBoard.h"
+
+@class VirtualPerson;
+
+@protocol VirtualPersonTicTacToeOpponent
+@required
+-(void)virtualPersonTicTacToeOpponent:(VirtualPerson *)vitualPerson selectSpace:(NSInteger)space;
+
+@end
+
 
 @interface VirtualPerson : NSObject
+
+@property (strong,nonatomic) id delegate;
+@property (weak,nonatomic) TicTacToeBoard *ticTacToeBoard;
+
+-(void)rebootVirtualPerson;
+-(id)initWithTicTacToeBoard:(TicTacToeBoard *)ticTacToeBoard;
+-(void)takeTurn;
+
 
 @end
