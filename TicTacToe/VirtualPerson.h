@@ -12,6 +12,7 @@
 @class VirtualPerson;
 
 @protocol VirtualPersonTicTacToeOpponent
+
 @required
 -(void)virtualPersonTicTacToeOpponent:(VirtualPerson *)vitualPerson selectSpace:(NSInteger)space;
 

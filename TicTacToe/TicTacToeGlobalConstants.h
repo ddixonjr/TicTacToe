@@ -16,5 +16,10 @@
 #define kTicTacToeSpaces 9
 #define kOpponentTypeHuman 0
 #define kOpponentTypeComputer 1
+#define kSpaceNotFound -1
+#define kPossibleWinPaths 8
+#define kBoardScanPasses 4
+#define kPurposeToFindWinSpace 0
+#define kPurposeToFindBuildSpace 1
 
 #endif

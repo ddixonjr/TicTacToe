@@ -320,7 +320,11 @@
 
     if ([self isOpponentTypeComputer])
     {
-        [self.virtualOpponent rebootVirtualPerson];
+//        [self.virtualOpponent rebootVirtualPerson];
+        self.virtualOpponent = nil;
+        self.virtualOpponent = [[VirtualPerson alloc] initWithTicTacToeBoard:self.ticTacToeBoard];
+        self.virtualOpponent.delegate = self;
+
     }
 }
 
