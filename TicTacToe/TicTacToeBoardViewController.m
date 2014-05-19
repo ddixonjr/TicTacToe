@@ -33,6 +33,12 @@
 //              -The last commit has a working version of the TicTacToeBoard data model object and
 //              -This commit removes most of the old code that was commented out just in case I needed to bring it back. :)
 //
+//  5/19/14:  (Dennis) branchFrom:RefactorToMVC toBranch:RefactorToMVC_Attempt01
+//              -This was the same work effort...pulled an all-nighter to get this working--WOOHOOO!
+//              -This version has the first level of solid intelligence to compete against a human!
+//              -I have some kinks to work out such as having to reinstantiate the VirtualPerson class every game
+//               lest it 'loose it's competitive edge' for some reason.  :)  That said, it works!
+//
 //  Copyright (c) 2014 AppSpaceship. All rights reserved.
 //
 
