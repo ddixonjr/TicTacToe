@@ -3,7 +3,7 @@
 //  TicTacToe
 //
 //  Created by Dennis Dixon on 5/18/14.
-//  Copyright (c) 2014 AppSpaceship. All rights reserved.
+//  Copyright (c) 2014 Appivot LLC All rights reserved.
 //
 
 #import "VirtualPerson.h"
@@ -41,16 +41,16 @@
 
 -(void)takeTurn
 {
-    NSLog(@"I am virtual Dennis and it's my turn.");
-    NSLog(@"The board looks like this: %@",[self.ticTacToeBoard getTicTacToeBoardArray]);
+//    NSLog(@"I am virtual Dennis and it's my turn.");
+//    NSLog(@"The board looks like this: %@",[self.ticTacToeBoard getTicTacToeBoardArray]);
 
     if (self.delegate  && [self.delegate respondsToSelector:@selector(virtualPersonTicTacToeOpponent:selectSpace:)] )
     {
         NSInteger aiChosenSpace = [self analyzeBoardAndFindBestMove];
         if (aiChosenSpace != kSpaceNotFound)
             [self.delegate virtualPersonTicTacToeOpponent:self selectSpace:aiChosenSpace];
-        else
-            NSLog(@"Virtual Dennis failed to analyze the board!!!");
+//        else
+//            NSLog(@"Virtual Dennis failed to analyze the board!!!");
     }
     else {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Connection Error" message:@"Use Human Mode" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];

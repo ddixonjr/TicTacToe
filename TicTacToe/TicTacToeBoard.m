@@ -3,7 +3,7 @@
 //  TicTacToe
 //
 //  Created by Dennis Dixon on 5/18/14.
-//  Copyright (c) 2014 AppSpaceship. All rights reserved.
+//  Copyright (c) 2014 Appivot LLC All rights reserved.
 //
 
 #import "TicTacToeBoard.h"
@@ -44,7 +44,7 @@
 
 -(BOOL)isBoardFilled
 {
-    NSLog(@"in TicTacToeBoard - isBoardFilled");
+//    NSLog(@"in TicTacToeBoard - isBoardFilled");
     NSInteger spacesFilled = 0;
     for (NSString *ticTacToeSpaceString in self.ticTacToeBoardArray)
     {
@@ -64,7 +64,7 @@
 
 -(NSString *) whoWon
 {
-    NSLog(@"in TicTacToeBoard whoWon - ticTacToeBoard.count = %d",  self.ticTacToeBoardArray.count);
+//    NSLog(@"in TicTacToeBoard whoWon - ticTacToeBoard.count = %d",  self.ticTacToeBoardArray.count);
     NSString *candidateWinner = [self testForWinner:self.ticTacToeBoardArray[0] second:self.ticTacToeBoardArray[1] third:self.ticTacToeBoardArray[2]];
 
     if (candidateWinner == nil)
